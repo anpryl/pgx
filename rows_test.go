@@ -29,7 +29,7 @@ func TestRowScanner(t *testing.T) {
 
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
 		var s testRowScanner
-		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as height").Scan(&s)
+		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as age").Scan(&s)
 		require.NoError(t, err)
 		require.Equal(t, "Adam", s.name)
 		require.Equal(t, int32(72), s.age)
@@ -53,7 +53,7 @@ func TestRowScannerCustomType(t *testing.T) {
 
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
 		var s testRowScannerCustomTypes
-		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as height").Scan(&s)
+		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as age").Scan(&s)
 		require.NoError(t, err)
 		n := name("Adam")
 		a := age(72)
@@ -76,14 +76,14 @@ func TestRowScannerCustomTypePointers(t *testing.T) {
 
 	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
 		var s testRowScannerCustomTypesPointers
-		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as height").Scan(&s)
+		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as age").Scan(&s)
 		require.NoError(t, err)
 		n := name("Adam")
 		a := age(72)
 		require.Equal(t, &n, s.name)
 		require.Equal(t, &a, s.age)
 
-		err = conn.QueryRow(ctx, "select null as name, null as height").Scan(&s)
+		err = conn.QueryRow(ctx, "select null as name, null as age").Scan(&s)
 		require.NoError(t, err)
 		require.Nil(t, s.name)
 		require.Nil(t, s.age)
