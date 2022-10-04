@@ -36,6 +36,60 @@ func TestRowScanner(t *testing.T) {
 	})
 }
 
+type name string
+type age int
+
+type testRowScannerCustomTypes struct {
+	name name
+	age  age
+}
+
+func (rs *testRowScannerCustomTypes) ScanRow(rows pgx.Rows) error {
+	return rows.Scan(&rs.name, &rs.age)
+}
+
+func TestRowScannerCustomType(t *testing.T) {
+	t.Parallel()
+
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+		var s testRowScannerCustomTypes
+		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as height").Scan(&s)
+		require.NoError(t, err)
+		n := name("Adam")
+		a := age(72)
+		require.Equal(t, n, s.name)
+		require.Equal(t, a, s.age)
+	})
+}
+
+type testRowScannerCustomTypesPointers struct {
+	name *name
+	age  *age
+}
+
+func (rs *testRowScannerCustomTypesPointers) ScanRow(rows pgx.Rows) error {
+	return rows.Scan(&rs.name, &rs.age)
+}
+
+func TestRowScannerCustomTypePointers(t *testing.T) {
+	t.Parallel()
+
+	defaultConnTestRunner.RunTest(context.Background(), t, func(ctx context.Context, t testing.TB, conn *pgx.Conn) {
+		var s testRowScannerCustomTypesPointers
+		err := conn.QueryRow(ctx, "select 'Adam' as name, 72 as height").Scan(&s)
+		require.NoError(t, err)
+		n := name("Adam")
+		a := age(72)
+		require.Equal(t, &n, s.name)
+		require.Equal(t, &a, s.age)
+
+		err = conn.QueryRow(ctx, "select null as name, null as height").Scan(&s)
+		require.NoError(t, err)
+		require.Nil(t, s.name)
+		require.Nil(t, s.age)
+	})
+}
+
 func TestForEachRow(t *testing.T) {
 	t.Parallel()
 
